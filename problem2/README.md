@@ -132,7 +132,7 @@ python problem2/problem_2_volumetric_rendering.py
 The script will render the scene from two different camera viewpoints and display the results. The correct rendering should show multiple colored shapes (blue and green spheres, red and yellow cubes) in 3D space. The rendering result of the debugging intrinsics should look like `problem2/expected_renders_for_debug/volume_rendering.png`.
 
 ### Please answer the following questions:
-Nowadays, the majority of differentiable rendering uses volumetric rendering rather than sphere tracing. Can you think of some reasons? (There might be multiple reasons, try to think at least one)
+Nowadays, the majority of differentiable rendering uses volumetric rendering rather than sphere tracing. Can you think of some reasons why? (There might be multiple reasons, try to think at least one)
 
 
 ### Extra Challenge
@@ -141,7 +141,7 @@ Nowadays, the majority of differentiable rendering uses volumetric rendering rat
 
 Happy rendering!
 
-## Submission guidlines
+## Submission guidelines
 
 1. For the code, submit the two Python files. Also, include the edited code in the report PDF file. (either paste formatted code or screenshot)
 
