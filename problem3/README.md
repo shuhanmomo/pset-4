@@ -114,6 +114,7 @@ For Problem-3, you don’t need to submit code. Please ensure you have passed th
 3. Difference between our implemented NeRF and the original NeRF paper. 
 4. At least two images showing your final rendering.
 
+It's better to name this pdf as problem_3.pdf. If you want to combine it with the pdf report from problem_2, it's fine as well. 
 
 
 Otherwise, you will lose points. Submit your work using Gradescope.
