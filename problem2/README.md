@@ -148,3 +148,5 @@ Happy rendering!
 2. Please submit your rendered images for both problems in the report pdf file. Please make sure that you used the intrinsics corresponding to the `submit` mode.
 
 3. For the questions, write in English and submit the report PDF file.
+
+It's better to name this pdf as problem_2.pdf. If you want to combine it with the pdf report from problem_3, it's fine as well. 
