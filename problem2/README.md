@@ -20,7 +20,7 @@ This function should:
 - Take camera-to-world transform and intrinsic parameters
 - Generate ray origins and directions for each pixel in the image
 - You need to convert pixel coordinates to camera space using the provided intrinsic parameters `[fx, fy, cx, cy]`
-- The resulting rays start at the camera position (origin) and go through each pixel
+- The resulting rays start at the camera position (origin) and go through each pixel. (remember to shift the x,y cords in camera plane by +0.5)
 - Use the camera-to-world transform `c2w` to transform rays from camera space to world space
 - Return ray origins and directions with shape `[H, W, 3]`
 
@@ -30,6 +30,9 @@ X_cam = (x - cx) / fx
 Y_cam = (y - cy) / fy
 Z_cam = 1
 ```
+
+Remember to normalize the ray_dir.
+
 
 ## Part B: Sphere Tracing
 
@@ -132,7 +135,7 @@ python problem2/problem_2_volumetric_rendering.py
 The script will render the scene from two different camera viewpoints and display the results. The correct rendering should show multiple colored shapes (blue and green spheres, red and yellow cubes) in 3D space. The rendering result of the debugging intrinsics should look like `problem2/expected_renders_for_debug/volume_rendering.png`.
 
 ### Please answer the following questions:
-Nowadays, the majority of differentiable rendering uses volumetric rendering rather than sphere tracing. Can you think of some reasons? (There might be multiple reasons, try to think at least one)
+Nowadays, the majority of differentiable rendering uses volumetric rendering rather than sphere tracing. Can you think of some reasons why? (There might be multiple reasons, try to think at least one)
 
 
 ### Extra Challenge
@@ -141,10 +144,12 @@ Nowadays, the majority of differentiable rendering uses volumetric rendering rat
 
 Happy rendering!
 
-## Submission guidlines
+## Submission guidelines
 
 1. For the code, submit the two Python files. Also, include the edited code in the report PDF file. (either paste formatted code or screenshot)
 
 2. Please submit your rendered images for both problems in the report pdf file. Please make sure that you used the intrinsics corresponding to the `submit` mode.
 
 3. For the questions, write in English and submit the report PDF file.
+
+It's better to name this pdf as problem_2.pdf. If you want to combine it with the pdf report from problem_3, it's fine as well. 

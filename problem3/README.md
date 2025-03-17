@@ -33,6 +33,8 @@ pip install -r requirements.txt
 
 Please fill in several lines of code in  `src/components/positional_encoding.py` to implement a Positional Encoding described in Equation (4) of paper:  [Neural Radiance Fields, Mildenhall et al., 2020](https://arxiv.org/abs/2003.08934).  Attach the filled-in code in the submission report.
 
+You need also to copy the SineLayer implementation in problem-1 to `problem3/src/components/sine_layer.py`. 
+
 After your implementation, please run to test it.
 
 `python -m tests.test_positional_encoding`
@@ -112,6 +114,7 @@ For Problem-3, you don’t need to submit code. Please ensure you have passed th
 3. Difference between our implemented NeRF and the original NeRF paper. 
 4. At least two images showing your final rendering.
 
+It's better to name this pdf as problem_3.pdf. If you want to combine it with the pdf report from problem_2, it's fine as well. 
 
 
 Otherwise, you will lose points. Submit your work using Gradescope.
