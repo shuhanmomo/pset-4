@@ -20,7 +20,7 @@ This function should:
 - Take camera-to-world transform and intrinsic parameters
 - Generate ray origins and directions for each pixel in the image
 - You need to convert pixel coordinates to camera space using the provided intrinsic parameters `[fx, fy, cx, cy]`
-- The resulting rays start at the camera position (origin) and go through each pixel
+- The resulting rays start at the camera position (origin) and go through each pixel. (remember to shift the x,y cords in camera plane by +0.5)
 - Use the camera-to-world transform `c2w` to transform rays from camera space to world space
 - Return ray origins and directions with shape `[H, W, 3]`
 
@@ -30,6 +30,9 @@ X_cam = (x - cx) / fx
 Y_cam = (y - cy) / fy
 Z_cam = 1
 ```
+
+Remember to normalize the ray_dir.
+
 
 ## Part B: Sphere Tracing
 
