@@ -52,8 +52,8 @@ class MLP(nn.Module):
         Return: tuple of (outputs, gradient-enabled coords). Shape of outputs should be (N, out_features).
 
         Hint: coords should be (N, d) where N is the number of points (batch size) and d is the dimensionality
-        if your input/field. Copy them and enable gradients on the copy. Then, pass them into your network
-        recalling that that in `utils.py` we use the convention that the input values are in [-1, 1] where
+        of your input/field. Copy them and enable gradients on the copy. Then, pass them into your network
+        recalling that in `utils.py` we use the convention that the input values are in [-1, 1] where
         -1 means "furthest left" or "furthest bottom" (depending on the dimension) and 1 means "furthest right"
         or "furthest top".
         """
