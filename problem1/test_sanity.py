@@ -141,18 +141,6 @@ class HelperTestForward:
         self.models = models
         assert len(self.outputs_inputs_expected) == len(self.models)
 
-    @classmethod
-    def generate_realistic_inputs(
-        cls, seed: int, models: List[torch.nn.Module]
-    ) -> List[torch.Tensor]:
-        # NOTE: this might be flaky to your pytorch version, but should work in general
-        set_seed(seed)
-        inputs = [torch.rand(10, model.in_features) * 2 - 1 for model in models]
-        inputs.extend([torch.zeros(5, model.in_features) for model in models])
-        inputs.extend([torch.ones(10, model.in_features) for model in models])
-        inputs.extend([-torch.ones(10, model.in_features) for model in models])
-        return inputs
-
     def test_forward_no_throw(self):
         for model, (output, input) in zip(self.models, self.outputs_inputs_expected):
             with torch.no_grad():
@@ -288,11 +276,11 @@ class TestSineLayer(HelperTestForward):
                 torch.zeros(1, 1),
                 -torch.ones(1000, 1),
             ]
-            inputs_file = Path.cwd() / "test_data" / "siren_inputs.safetensors"
+            inputs_file = Path.cwd() / "test_data" / "sine_layer_inputs.safetensors"
             save_file(list2dict(inputs, "input"), inputs_file)
         else:
             assert self.tensors_filename().exists()
-            inputs = dict2list(load_file(Path.cwd() / "test_data" / "siren_inputs.safetensors"), "input") # fmt: skip
+            inputs = dict2list(load_file(Path.cwd() / "test_data" / "sine_layer_inputs.safetensors"), "input") # fmt: skip
             assert len(inputs) == len(models) == 9
         outputs_inputs = self.load_io(inputs, models)
         assert len(outputs_inputs) == len(models)
@@ -449,11 +437,11 @@ class TestMLP(HelperTestForward):
                 )
             )
         # Re-initialize all parameters for each model
-        # NOTE: this might be flaky to your pytorch version, but should work in general
         set_seed(0)
         for model in _models:
             for param in model.parameters():
-                nn.init.normal_(param, mean=0.0, std=0.1)  # eh - seed
+                # nn.init.normal_(param, mean=0.0, std=0.1)  # FLAKY
+                param.data.fill_(0.66423)
         # Ensure we have at least one of each activation type
         activations = set(model.activation for model in _models)
         assert len(activations) == 3, "Need at least one of each activation type (ReLU, Tanh, GELU)" # fmt: skip
@@ -482,8 +470,18 @@ class TestMLP(HelperTestForward):
         assert 1 in hidden_layers_values, "Need at least one model with hidden_layers=1" # fmt: skip
 
         # Stride is the entire batch
-        set_seed(0)
-        inputs = self.generate_realistic_inputs(0, _models)
+
+        mlp_inputs_path = Path.cwd() / "test_data" / "mlp_inputs.safetensors"
+        if self.regress_on_current_results:
+            set_seed(0)
+            inputs = [torch.rand(10, model.in_features) * 2 - 1 for model in _models]
+            inputs.extend([torch.zeros(5, model.in_features) for model in _models])
+            inputs.extend([torch.ones(10, model.in_features) for model in _models])
+            inputs.extend([-torch.ones(10, model.in_features) for model in _models])
+            save_file(list2dict(inputs, "mlp_inputs"), mlp_inputs_path)
+        else:
+            assert mlp_inputs_path.exists()
+            inputs = dict2list(load_file(mlp_inputs_path), "mlp_inputs")
         models = (
             _models * 4
         )  # everyone gets the 1st, then the 2nd, ... (so everyone gets 4)
@@ -577,9 +575,8 @@ class TestSIREN(HelperTestForward):
         set_seed(0)
         for model in _models:
             for param in model.parameters():
-                nn.init.normal_(
-                    param, mean=0.0, std=0.1
-                )  # eh - seed (don't use init, tested seperately)
+                # nn.init.normal_(param, mean=0.0, std=0.1)  # FLAKY
+                param.data.fill_(0.1057329)
 
         # Asserts from before
         in_features_sizes = set(model.in_features for model in _models)
@@ -601,9 +598,17 @@ class TestSIREN(HelperTestForward):
         assert 1 in hidden_layers_values, "Need at least one model with hidden_layers=1" # fmt: skip
 
         # Stride is the entire batch
-        set_seed(0)
-        # NOTE: this might be flaky to your pytorch version, but should work in general
-        inputs = self.generate_realistic_inputs(0, _models)
+        siren_inputs_path = Path.cwd() / "test_data" / "siren_inputs.safetensors"
+        if self.regress_on_current_results:
+            set_seed(0)
+            inputs = [torch.rand(10, model.in_features) * 2 - 1 for model in _models]
+            inputs.extend([torch.zeros(5, model.in_features) for model in _models])
+            inputs.extend([torch.ones(10, model.in_features) for model in _models])
+            inputs.extend([-torch.ones(10, model.in_features) for model in _models])
+            save_file(list2dict(inputs, "siren_inputs"), siren_inputs_path)
+        else:
+            assert siren_inputs_path.exists()
+            inputs = dict2list(load_file(siren_inputs_path), "siren_inputs")
         models = (
             _models * 4
         )  # everyone gets the 1st, then the 2nd, ... (so everyone gets 4)
@@ -647,16 +652,30 @@ class TestGradients:
         set_seed(0)
         self.mlp = MLP(in_features=1, out_features=1, hidden_features=10, hidden_layers=3, bias=True) # fmt: skip
         self.siren = SIREN(in_features=1, out_features=1, hidden_features=10, hidden_layers=2, bias=True, last_layer_linear=True, first_omega_0=20, hidden_omega_0=20) # fmt: skip
-        # NOTE: this might be flaky to your pytorch version, but should work in general
         set_seed(0)
         for p in self.mlp.parameters():
-            nn.init.normal_(p, mean=0.0, std=0.1)
+            # nn.init.normal_(p, mean=0.0, std=0.1) # FLAKY
+            p.data.fill_(0.03845)
         for p in self.siren.parameters():
-            nn.init.normal_(p, mean=0.0, std=0.1)
+            # nn.init.normal_(p, mean=0.0, std=0.1) # FLAKY
+            p.data.fill_(5.43)
         # Create non-random inputs
-        # NOTE: strided across all models, so each even alue is for mlp and each odd is for siren
-        # NOTE: this might be flaky to your pytorch version, but should work in general
-        inputs = HelperTestForward.generate_realistic_inputs(0, [self.mlp, self.siren])
+        grad_inputs_path = Path.cwd() / "test_data" / "grad_inputs.safetensors"
+        _models_list = [self.mlp, self.siren]
+        if self.regress_on_current_results:
+            set_seed(0)
+            inputs = [
+                torch.rand(10, model.in_features) * 2 - 1 for model in _models_list
+            ]
+            inputs.extend([torch.zeros(5, model.in_features) for model in _models_list])
+            inputs.extend([torch.ones(10, model.in_features) for model in _models_list])
+            inputs.extend(
+                [-torch.ones(10, model.in_features) for model in _models_list]
+            )
+            save_file(list2dict(inputs, "grad_inputs"), grad_inputs_path)
+        else:
+            assert grad_inputs_path.exists()
+            inputs = dict2list(load_file(grad_inputs_path), "grad_inputs")
         assert len(inputs) % (2*4) == 0, "Need even number of inputs" # fmt: skip
         self.mlp_inputs = inputs[::2]
         self.siren_inputs = inputs[1::2]
