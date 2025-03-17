@@ -49,7 +49,7 @@ Questions:
     Answer2: Second order methods leveraging the fisher information matrix of the weights
     Answer3: Calculating the gradient w.r.t. to the inputs
     Answer4: Computing the gradient of the output w.r.t. the weights
-    Answer5: Backpropagating until of the output w.r.t. an intermediate layer
+    Answer5: Backpropagating until an intermediate layer to find that gradient of the output w.r.t. that activation
 ################################################################
 - Question: What do the three parts of the signed distance function loss mean?
   Answers: null
@@ -65,7 +65,7 @@ Questions:
   CorrectAnswers: null
   Options:
     Answer1: The generalized Laplace transform using any non-imaginary base
-    Answer2: The Fourier transform independently along each dimension (since SIREN takes in the two dimensions seperately)
+    Answer2: The Fourier transform independently along each dimension (since SIREN takes in the two dimensions separately)
     Answer3: Fourier transform with units that depend on your implementation of the architecture, but will not change across data and training run.
     Answer4: This is a trick question. SIREN, like many other neural networks, is not _inherently_ interpretable. It might be, but that would be a property of the dataset, regularization, or pure luck.
     Answer5: The Fourier transform of the fourier transform since you are applying sine function twice.

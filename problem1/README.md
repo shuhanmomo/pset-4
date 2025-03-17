@@ -5,7 +5,7 @@ In this problem, you will learn the theory underlying Sine Representation Networ
 ## Part 1: Understanding the theory
 
 For this part, start by reading the SIRENs paper:
-> [*Implicit Neural Representations with Periodic Activation Functions*](https://www.google.com/search?client=firefox-b-1-d&q=Implicit+Neural+Representations+with+Periodic+Activation+Functions) by Sitzmann and Martel et al., NeurIPS 2020
+> [*Implicit Neural Representations with Periodic Activation Functions*](https://arxiv.org/abs/2006.09661) by Sitzmann and Martel et al., NeurIPS 2020
 
 Next, answer all the multiple choice questions in `multiple_choice.yml` to test your comprehension.
 
@@ -16,12 +16,14 @@ It is recommended that you install the relevant packages with
 conda create -n <insert name> python=3.12
 ```
 and then
-```
+```bash
 conda activate <insert name> && \
-  pip3 install -r requirements
+  pip3 install -r requirements.txt
 ```
 
 Everything should run on CPU
+
+**NOTE** that if you have versioning issues, the versions do not really matter other than for the purposes of testing, you can just `pip install -r requirements-no-version.txt` but expect unit tests that have seeded randomness to fail even if your code is correct.
 
 ### Instructions
 
@@ -34,7 +36,7 @@ Using your knowledge from the paper, do the following:
   - Implement a flexible MLP/SIREN training loop (`problem_1_train.py`)
 - Run the notebook `benchmark.ipynb` to check your functions and visualize the training process
 
-**Testing**. You are provided an optional suite of unit tests in `test_sanity.py` which check that your functions work properly and that your multiple choice YAML is properly formatted. Use them with `pytest .` to help debug your code, but they will not be used to grade. You can also look at some example outputs in `should_look_like/`. The unit tests use regression-testing based on a "correct" solution by the TAs and the serialized expected outputs are saved in `test_data/` so do not modfiy that folder. To run all tests except the slowest one, use `pytest . -k "not initialization"`.
+**Testing**. You are provided an optional suite of unit tests in `test_sanity.py` which check that your functions work properly and that your multiple choice YAML is properly formatted. Use them with `pytest .` to help debug your code, but **they will not be used to grade**. You can also look at some example outputs in `should_look_like/`. The unit tests use regression-testing based on a "correct" solution by the TAs and the serialized expected outputs are saved in `test_data/` so do not modfiy that folder. To run all tests except the slowest one, use `pytest . -k "not initialization"`.
 
 ### Short-answer questions
 
