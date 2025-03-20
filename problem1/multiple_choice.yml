@@ -22,7 +22,10 @@
 ################################################################
 Questions:
 - Question: What is the difference between a neural field and grid representations of images or other higher dimensional signals? Why might we prefer it?
-  Answers: null
+  Answers: 
+    - Answer1
+    - Answer4
+    - Answer5
   CorrectAnswers: null
   Options:
     Answer1: Memory scales up much more slowly as dimensionality and resolution increase. Specifically, for a grid it would scale exponentially in the resolution and polynomially in the dimensionality, whereas a neural field scales in terms of complexity.
@@ -32,7 +35,8 @@ Questions:
     Answer5: It is faster for querying because you can pipeline layer-by-layer neural network computation
 ################################################################
 - Question: In what ways are SIRENs an improvement over ReLU MLPs?
-  Answers: null
+  Answers: 
+    - Answer1
   CorrectAnswers: null
   Options:
     Answer1: By using sinusoidal activation functions their training converges faster, models high frequencies better, and enables training on image gradients.
@@ -42,7 +46,9 @@ Questions:
     Answer5: By being the first to ever use locally linear activation functions their training converges faster, models low frequencies better, and enables training on image derivatives.
 ################################################################
 - Question: How can you find a spatial derivative of a neural field in a way that is not possible with voxel grids?
-  Answers: null
+  Answers: 
+    - Answer2
+    - Answer3
   CorrectAnswers: null
   Options:
     Answer1: Finite differences
@@ -52,7 +58,8 @@ Questions:
     Answer5: Backpropagating until an intermediate layer to find that gradient of the output w.r.t. that activation
 ################################################################
 - Question: What do the three parts of the signed distance function loss mean?
-  Answers: null
+  Answers: 
+    - Answer2
   CorrectAnswers: null
   Options:
     Answer1: (a) Gradient is non-negative almost everywhere, (b) value is zero at the zero-surface/set and the gradient is pointing along the normal of the zero-set (c) penalize negative values away from the zero set (because signed distance is an absolute value).
@@ -61,7 +68,8 @@ Questions:
     Answer4: (a) Gradient is almost 1 everywhere, (b) value is infinite at the zero-surface/set and the gradient is pointing along the normal of the zero-set (c) penalize large values away from the zero set.
 ################################################################
 - Question: "What is an interpretation of an optimal 1-hidden-layer SIREN network trained on a single image? Specifically, imagine we take in two coordinates: `x, y` and we output one: `z` where we have a function `z = f(x, y)` for some differentiable, bounded, `f` in a finite region (i.e., `[-1, 1]^2`). The 1-layer SIREN network first takes the inputs and linearly maps them to a higher dimensional space via a matrix, before adding a bias. These are input into the `sin` function and then those sinusoids are dot-product-ed with another set of weights to yield the scalar `z`. What might these weights mean?) _Hint: it's a function we've emphasized the importance of in class many times."
-  Answers: null
+  Answers: 
+    - Answer2
   CorrectAnswers: null
   Options:
     Answer1: The generalized Laplace transform using any non-imaginary base

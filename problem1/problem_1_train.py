@@ -8,7 +8,8 @@ from torch.utils.data import DataLoader
 from problem_1_gradients import gradient, laplace
 from problem_1_mlp import MLP
 from problem_1_siren import SIREN
-from utils import ImageDataset, plot, psnr
+from problem1_grid import GRID
+from utils import ImageDataset, plot, psnr, set_seed
 from typing import Dict, Any
 
 
@@ -19,11 +20,13 @@ def train(
     total_steps: int,  # Number of gradient descent step
     steps_til_summary: int,  # Number of steps between summaries (i.e. print/plot)
     device: torch.device,  # "cuda" or "cpu"
+    seed: int = 245,
+    plot_multi_models: bool = False,
     **kwargs: Dict[str, Any],  # Model-specific arguments
 ):
     """
     Train the model on the provided dataset.
-    
+
     Given the **kwargs, initialize a neural field model and an optimizer.
     Then, train the model and log the loss and PSNR for each step. Examples
     in the notebook use MSE loss, but feel free to experiment with other
@@ -43,4 +46,59 @@ def train(
 
     PSNR is defined here: https://en.wikipedia.org/wiki/Peak_signal-to-noise_ratio
     """
-    raise NotImplementedError("Not implemented!")
+    set_seed(seed)
+    # initialize model
+    model_type = model
+    if model_type == "MLP":
+        model = MLP(**kwargs)
+    elif model_type == "SIREN":
+        model = SIREN(**kwargs)
+    elif model_type == "GRID":
+        model = GRID(**kwargs)
+    model.to(device)
+    model.train()
+
+    # optimizer
+    optimizer = torch.optim.Adam(model.parameters(), lr=lr)
+
+    # loss
+    loss_fn = torch.nn.MSELoss()
+    mse_history = []
+    psnr_history = []
+
+    # start iterations
+    for iteration in range(total_steps):
+        optimizer.zero_grad()
+        samples = dataset.coords.to(device)
+        predicted, _ = model(samples)
+        ground_truth = dataset.pixels.to(device)
+
+        if (iteration + 1) % steps_til_summary == 0:
+
+            if model_type == "GRID":  # gradient for grid sample is not implemented
+                grad = torch.zeros_like(predicted)
+                laplacian = torch.zeros_like(predicted)
+            else:
+                grad = gradient(predicted, samples)
+                laplacian = laplace(predicted, samples)
+
+        loss = loss_fn(predicted, ground_truth)
+        loss.backward(retain_graph=True)
+        optimizer.step()
+
+        # record
+        mse_val = loss.item()
+        mse_history.append(mse_val)
+        psnr_score = psnr(predicted, ground_truth).cpu().detach().float()
+        psnr_history.append(psnr_score)
+
+        # plot images
+        if (iteration + 1) % steps_til_summary == 0 and not plot_multi_models:
+            # model_outputs = predicted.clone().detach().requires_grad_(True)
+            print(f"Step {iteration} : loss={mse_val:4f}, psnr={psnr_score:4f}")
+            plot(dataset, predicted, grad, laplacian)
+
+    if not plot_multi_models:
+        return mse_history, psnr_history
+    else:
+        return mse_history, psnr_history, predicted, grad, laplacian

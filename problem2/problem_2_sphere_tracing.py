@@ -48,6 +48,7 @@ class SimpleImplicitModel(nn.Module):
 
         # Determine the closest sphere and assign the color and SDF
         sdf = torch.minimum(sphere1_dist, sphere2_dist)
+        print(f"raw sdf {sdf.shape}")
         color = torch.where(sphere1_dist <= sphere2_dist, sphere1_color, sphere2_color)
 
         return sdf, color
@@ -82,8 +83,30 @@ def camera_param_to_rays(c2w, intrinsics, H=128, W=128):
     # 1. Create a meshgrid of pixel coordinates
     # 2. Convert pixel coordinates to camera coordinates using intrinsics
     # 3. Transform camera coordinates to world coordinates using c2w
+    fx, fy, cx, cy = intrinsics
+    i, j = torch.meshgrid(
+        torch.arange(W), torch.arange(H), indexing="xy"
+    )  # Create meshgrid
+    i = i.float() + 0.5  # Shift by 0.5 for center of pixel
+    j = j.float() + 0.5
 
-    return ray_origins, ray_directions
+    x_cam = (i - cx) / fx  # Normalize by focal length
+    y_cam = (j - cy) / fy
+    z_cam = torch.ones_like(x_cam)
+
+    ray_directions_cam = torch.stack([x_cam, y_cam, z_cam], dim=-1)  # Shape [H, W, 3]
+    ray_directions_world = (
+        c2w[:3, :3] @ ray_directions_cam.reshape(-1, 3).T
+    ).T  # Rotate rays
+    ray_directions_world = ray_directions_world.reshape(
+        H, W, 3
+    )  # Reshape back to [H, W, 3]
+    ray_directions_world = torch.nn.functional.normalize(
+        ray_directions_world, dim=-1
+    )  # Normalize to unit length
+    ray_origins = c2w[:3, 3].expand(H, W, 3)  # Broadcast camera origin to all pixels
+
+    return ray_origins, ray_directions_world
 
 
 ############################
@@ -127,10 +150,31 @@ def sphere_tracing(
 
     # Hint: Implement sphere tracing algorithm
     # 1. Initialize t for each ray
+    device = ray_origins.device
+    H, W, _ = ray_origins.shape
+    image = torch.zeros(H, W, 3, device=device)
+    t = torch.full((H, W), t_near, device=device)
+
     # 2. Iteratively march along rays
+    active_mask = torch.ones(H, W, dtype=torch.bool, device=device)
     # 3. Sample points along rays and query SDF
     # 4. Update t for each ray based on SDF value
     # 5. Stop marching when rays hit the surface or reach max iterations
+    for _ in range(max_iter):
+        points = ray_origins + t[..., None] * ray_directions
+        sdf_values, colors = model(points)
+        sdf_values = sdf_values.squeeze(-1)
+        print(f"sdf {sdf_values.shape}, mask {active_mask.shape}")
+        # Check which rays have hit the surface (SDF < epsilon)
+        hit_mask = (sdf_values.abs() < epsilon) & active_mask
+        # Check which rays have exceeded the maximum distance
+        image[hit_mask] = colors[hit_mask]
+        far_mask = (t > t_far) & active_mask
+        active_mask &= ~(hit_mask | far_mask)
+        t = torch.where(active_mask, t + sdf_values, t)
+        # If all rays are inactive, stop tracing
+        if not active_mask.any():
+            break
     # 6. Reconstruct image from hit points
 
     return image

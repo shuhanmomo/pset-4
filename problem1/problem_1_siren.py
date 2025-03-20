@@ -7,7 +7,7 @@ attention to the paper linked in the README when implementing this model.
 
 Some conventions we use that you will need to follow IF you want to use the unit tests:
 1. If the last layer is linear, then it always has a bias (other terms have a bias IFF self.bias is True)
-2. There is one layer from `in_features` to `hidden_features` and then `hidden_layers` layers from 
+2. There is one layer from `in_features` to `hidden_features` and then `hidden_layers` layers from
     `hidden_features` to `hidden_features`; the last layer (which could be linear or not) is from
     `hidden_features` to `out_features`.
 """
@@ -29,6 +29,7 @@ class SineLayer(nn.Module):
     ):
         super().__init__()
         self.omega_0 = omega_0
+
         self.linear = nn.Linear(in_features, out_features, bias=bias)
         self.init_weights(is_first_layer, in_features)
 
@@ -38,10 +39,18 @@ class SineLayer(nn.Module):
         Initialize the weights of the layer according to the scheme
         described in the SIREN paper.
         """
-        raise NotImplementedError("Not implemented!")
+        with torch.no_grad():
+            if is_first_layer:
+                self.linear.weight.uniform_(-1 / in_features, 1 / in_features)
+            else:
+                scaling_factor = (
+                    torch.sqrt(torch.tensor(6.0 / in_features)) / self.omega_0
+                )
+                self.linear.weight.uniform_(-scaling_factor, scaling_factor)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        raise NotImplementedError("Not implemented!")
+
+        return torch.sin(self.omega_0 * self.linear(x))
 
 
 class SIREN(nn.Module):
@@ -72,7 +81,50 @@ class SIREN(nn.Module):
         """
         Build the network according to the provided hyperparameters.
         """
-        raise NotImplementedError("Not implemented!")
+        layers = []
+        layers.append(
+            SineLayer(
+                self.in_features,
+                self.hidden_features,
+                self.bias,
+                is_first_layer=True,
+                omega_0=self.first_omega_0,
+            )
+        )  # add first layer
+
+        # hidden layers
+        for _ in range(self.hidden_layers):
+            layers.append(
+                SineLayer(
+                    self.hidden_features,
+                    self.hidden_features,
+                    self.bias,
+                    is_first_layer=False,
+                    omega_0=self.hidden_omega_0,
+                )
+            )
+
+        # output
+        if self.last_layer_linear:
+            out_layer = nn.Linear(self.hidden_features, self.out_features)
+            with torch.no_grad():
+                out_layer.weight.uniform_(
+                    -torch.sqrt(torch.tensor(6 / self.hidden_features))
+                    / self.hidden_omega_0,
+                    torch.sqrt(torch.tensor(6 / self.hidden_features))
+                    / self.hidden_omega_0,
+                )
+        else:
+            out_layer = SineLayer(
+                self.hidden_features,
+                self.out_features,
+                self.bias,
+                is_first_layer=False,
+                omega_0=self.hidden_omega_0,
+            )
+
+        layers.append(out_layer)
+        return nn.Sequential(*layers)
 
     def forward(self, coords: jaxtyping.Float[torch.Tensor, "N D"]) -> Tuple[
         jaxtyping.Float[torch.Tensor, "N out_features"],
@@ -89,4 +141,6 @@ class SIREN(nn.Module):
         -1 means "furthest left" or "furthest bottom" (depending on the dimension) and 1 means "furthest right"
         or "furthest top".
         """
-        raise NotImplementedError("Not implemented!")
+        coords = coords.requires_grad_(True)
+        outputs = self.net(coords)
+        return outputs, coords

@@ -1,14 +1,14 @@
 """
 Implement a neural field using a simple MLP.
 
-The MLP maps from `in_features`-dimensional points (e.g., 2D xy positions) 
+The MLP maps from `in_features`-dimensional points (e.g., 2D xy positions)
 to `out_features`-dimensional points (e.g., 1D color values). To make your
 implementation more general, also let the user specify any activation function.
 
 Some conventions we use that you will need to follow IF you want to use the unit tests:
 1. The last layer is always linear.
 2. All layers have bias IFF self.bias is True.
-3. There is one linear+activation function layer from the input (`in_features`) to `hidden_features` and then `hidden_layers-1` 
+3. There is one linear+activation function layer from the input (`in_features`) to `hidden_features` and then `hidden_layers-1`
     linear+activation function layers from `hidden_features` to `hidden_features`, and then a linear layer from `hidden_features`
     to `out_features`.
 """
@@ -17,6 +17,7 @@ import torch
 import torch.nn as nn
 from typing import Tuple
 import jaxtyping
+
 
 class MLP(nn.Module):
     def __init__(
@@ -40,8 +41,21 @@ class MLP(nn.Module):
 
     def initialize_net(self):
         """Build the network according to the provided hyperparameters."""
-        raise NotImplementedError("Not implemented!")
-    
+        layers = []
+        # input layer
+        layers.append(nn.Linear(self.in_features, self.hidden_features, self.bias))
+        layers.append(getattr(nn, self.activation)())
+
+        # hidden layers
+        for _ in range(self.hidden_layers):
+            layers.append(
+                nn.Linear(self.hidden_features, self.hidden_features, self.bias)
+            )
+            layers.append(getattr(nn, self.activation)())
+
+        layers.append(nn.Linear(self.hidden_features, self.out_features))
+        return nn.Sequential(*layers)
+
     def forward(self, coords: jaxtyping.Float[torch.Tensor, "N D"]) -> Tuple[
         jaxtyping.Float[torch.Tensor, "N out_features"],
         jaxtyping.Float[torch.Tensor, "N D"],
@@ -57,4 +71,6 @@ class MLP(nn.Module):
         -1 means "furthest left" or "furthest bottom" (depending on the dimension) and 1 means "furthest right"
         or "furthest top".
         """
-        raise NotImplementedError("Not implemented!")
+        coords = coords.requires_grad_(True)
+        outputs = self.net(coords)
+        return outputs, coords
